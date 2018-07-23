@@ -4,6 +4,7 @@ Public Class Employee
     Private ReadOnly Name As String
     Private ReadOnly DateHired As DateTime
     Private ReadOnly SkillLevel As Integer
+    Private ReadOnly HourlyPayRate As Double
 
     Public Sub New(aStaffID As Integer, aPositionID As Integer, aName As String, aDateHired As DateTime)
         staffID = aStaffID
@@ -11,6 +12,34 @@ Public Class Employee
         Name = aName
         DateHired = aDateHired
         SkillLevel = DateDiff(DateInterval.Year, Today(), DateHired)
+        'this is ugly as fuck hard coding all this stuff
+        'TODO determine payrates
+        If (staffID = 1) Then
+
+        ElseIf (staffID = 2) Then
+
+        ElseIf (staffID = 3) Then
+
+        ElseIf (staffID = 4) Then
+
+        ElseIf (staffID = 5) Then
+
+        ElseIf (staffID = 6) Then
+
+        ElseIf (staffID = 7) Then
+
+        ElseIf (staffID = 8) Then
+
+        ElseIf (staffID = 9) Then
+
+        ElseIf (staffID = 10) Then
+
+        ElseIf (staffID = 10) Then
+
+        Else
+
+
+        End If
     End Sub
 
     Public Function CanWorkJob(aJobID As Integer) As Integer
