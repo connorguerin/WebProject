@@ -111,9 +111,13 @@ Public Class ScheduleOptimizer
             myModel.AddConstraint("Maximum_Hours", totalHours <= myEmployeeList.Item(i).MaxHours)
         Next
 
+        'TODO add constraint that specifies the experience level of a shift must be a certain amount
+
     End Sub
 
     Public Sub AddGoal()
+        Dim myGoal As Term
+        'TODO this
 
     End Sub
     Public Function laborNeeds(n As Integer, seasonFactor As Integer) As Integer(,)
@@ -191,4 +195,3 @@ Public Class ScheduleOptimizer
         Return -0.0001 * day ^ 2 + 0.015 * day + 1
     End Function
 End Class
-
