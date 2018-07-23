@@ -9,8 +9,6 @@ Public Class Employee
         positionID = aPositionID
         Name = aName
         DateHired = aDateHired
-        SkillLevel = DateDiff(DateInterval.Year, Today(), DateHired)
-
     End Sub
 
     Public Function CanWorkJob(aJobID As Integer) As Integer
@@ -25,35 +23,52 @@ Public Class Employee
     Public Function HourlyRate() As Double
         'this is ugly as fuck hard coding all this stuff
         'TODO determine payrates
+        Dim baseRate As Integer
         If (staffID = 1) Then
-
-        ElseIf (staffID = 2) Then
-
-        ElseIf (staffID = 3) Then
-
-        ElseIf (staffID = 4) Then
-
-        ElseIf (staffID = 5) Then
-
-        ElseIf (staffID = 6) Then
-
-        ElseIf (staffID = 7) Then
-
-        ElseIf (staffID = 8) Then
-
-        ElseIf (staffID = 9) Then
-
-        ElseIf (staffID = 10) Then
-
-        ElseIf (staffID = 10) Then
-
-        Else
-
-
+            baseRate = 20
         End If
+
+        If (staffID = 2) Then
+            baseRate = 10
+        End If
+
+        If (staffID = 3) Then
+            baseRate = 22
+        End If
+        If (staffID = 4) Then
+            baseRate = 12
+        End If
+
+        If (staffID = 5) Then
+            baseRate = 24
+        End If
+        If (staffID = 6) Then
+            baseRate = 14
+        End If
+        If (staffID = 7) Then
+            baseRate = 22
+        End If
+
+        If (staffID = 8) Then
+            baseRate = 12
+        End If
+        If (staffID = 9) Then
+            baseRate = 23
+        End If
+        If (staffID = 10) Then
+            baseRate = 13
+        End If
+        If (staffID = 11) Then
+            baseRate = 24
+        End If
+        If (staffID = 12) Then
+            baseRate = 14
+        End If
+
+        Return baseRate * (1 + (0.05 * SkillRating()))
     End Function
     Public Function SkillRating() As Integer
-
+        Return math.abs(DateDiff(DateInterval.Year, Today(), DateHired))
     End Function
 
     Public Function MaxHours() As Integer
