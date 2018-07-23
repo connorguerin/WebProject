@@ -98,7 +98,7 @@ Public Class ScheduleOptimizer
             myModel.AddConstraint("Minimum_Hours", totalHours >= myEmployeeList.Item(i).MinHours)
         Next
 
-
+        'employee cannot work more than their weekly hour limit
         For i = 0 To myEmployeeList.Count - 1
             totalHours = 0
             For j = 0 To 5
@@ -112,12 +112,38 @@ Public Class ScheduleOptimizer
         Next
 
         'TODO add constraint that specifies the experience level of a shift must be a certain amount
+        Dim experience As term
+        Dim employeesum As term
+        Dim averageExperience As term
+        Dim averageExNeeded(,) As Integer = ExperienceNeeds()
+        For j = 0 To 5
+            For k = 0 To 3
+                experience = 0
+                employeesum = 0
+                For i = 0 To myEmployeeList.count - 1
+                    Dim currentDecision As decision = myDecisionMatrix(i, j, k)
+                    experience += currentDecision * myEmployeeList.item(i).Skillrating()
+                    employeesum += currentDecision
+                Next
+                averageExperience = experience / employeesum
+                myModel.AddConstraint("Minimum_Experience", averageExperience >= averageExNeeded(j, k))
+            Next
+        Next
 
     End Sub
 
     Public Sub AddGoal()
-        Dim myGoal As Term
-        'TODO this
+        Dim myGoal As Term = 0
+        For i = 0 To myEmployeeList.count - 1
+            For j = 0 To 5
+                For k = 0 To 3
+                    myGoal += myDecisionMatrix(i, j, k) * myEmployeeList.item(i).hourlyRate * 4
+                Next
+            Next
+        Next
+
+        myModel.AddGoal("Minimize_Labor_Costs", GoalKind.Minimize, myGoal)
+
 
     End Sub
     Public Function laborNeeds(n As Integer, seasonFactor As Integer) As Integer(,)
@@ -183,8 +209,6 @@ Public Class ScheduleOptimizer
         WorkersPerShift(5, 2) = S3RestaurantWorkers
         WorkersPerShift(5, 3) = S4RestaurantWorkers
 
-
-
         Return WorkersPerShift
 
     End Function
@@ -193,5 +217,37 @@ Public Class ScheduleOptimizer
         'Assuming the resort is open for 100 days and the peak season is day 50, where the peak factor = 1.5
         'the season factor can be described as a function of the day, x where f(x) = -0.0001 * x^2 + 0.015 * x + 1
         Return -0.0001 * day ^ 2 + 0.015 * day + 1
+    End Function
+
+    Public Function ExperienceNeeds(seasonFactor As Integer) As Integer(,)
+        'this determines what the minimum average of employee experience levels should be for each shift of each job
+        'as a function of the season
+
+        'initialize matrix
+        Dim experienceMatrix(5, 3) As Integer
+
+        'research shows beach and restaurant dinner shift positions need higher experienced employees based on seasonal increases
+        For i = 0 To 3
+            experienceMatrix(0, i) = 1 * seasonFactor
+            experienceMatrix(1, i) = 1 * seasonFactor
+        Next
+
+        For i = 1 To 2
+            experienceMatrix(2, i) = 2 * seasonFactor
+            experienceMatrix(3, i) = 2 * seasonFactor
+        Next
+
+        For i = 1 To 2
+            experienceMatrix(4, i) = 1 * seasonFactor
+        Next
+
+        For i = 1 To 2
+            experienceMatrix(5, i) = 1 * seasonFactor
+        Next
+        experienceMatrix(5, 3) = 2 * seasonFactor
+
+        Return experienceMatrix
+
+
     End Function
 End Class
