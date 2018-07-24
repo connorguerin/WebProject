@@ -1,0 +1,43 @@
+<%@ Master Language="VB" CodeFile="MasterPageW3.master.vb" Inherits="MasterPageW3" %>
+
+<!DOCTYPE html>
+
+<html>
+<head runat="server">
+    <title></title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <asp:ContentPlaceHolder id="head" runat="server">
+
+    </asp:ContentPlaceHolder>
+</head>
+
+<body>
+
+    <!-- Header Bar -->
+  <div class="w3-bar w3-white w3-border-bottom w3-xlarge">
+  <a href="#" class="w3-bar-item w3-button w3-text-red w3-hover-red"><b><i class="fa fa-building-o w3-margin-right"></i>Logo</b></a>
+  
+</div>
+
+    <!-- Navigation Bar -->
+  <div class="w3-bar w3-border w3-light-grey">
+  <a href="NewDashboard.aspx" class="w3-bar-item w3-button"><i class="fa fa-tachometer w3-margin-right"></i>Dashboard</a>
+  <a href="Booking.aspx" class="w3-bar-item w3-button"><i class="fa fa-address-book w3-margin-right"></i>Booking</a>
+  <a href="#" class="w3-bar-item w3-button"><i class="fa fa-calendar-check-o w3-margin-right"></i>Staffing</a>
+  <a href="#" class="w3-bar-item w3-button w3-black w3-right">Sign Out <i class="fa fa-sign-out w3-margin-left"></i></a>
+</div> 
+
+    <form id="form1" runat="server">
+    <div>
+        <asp:ContentPlaceHolder id="ContentPlaceHolder1" runat="server">
+        
+
+
+
+        </asp:ContentPlaceHolder>
+    </div>
+    </form>
+</body>
+</html>
