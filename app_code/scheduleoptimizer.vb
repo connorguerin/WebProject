@@ -153,14 +153,14 @@ Public Class ScheduleOptimizer
         'raw numbers of expected customers in a given place at given shift
         'restaurant
         Dim restS2 As Double = Math.Ceiling(0.5 * 0.2 * n) * seasonFactor
-        Dim restS3 As Double = Math.Ceiling(0.5 * 0.2 * n) * seasonFactor
+        Dim restS3 As Double = Math.Ceiling(0.5 * 0.3 * n) * seasonFactor
         Dim restS4 As Double = Math.Ceiling(0.5 * 0.5 * n) * seasonFactor
         'beach
         Dim beachS2 As Double = Math.Ceiling(0.7 * 0.35 * n) * seasonFactor
         Dim beachS3 As Double = Math.Ceiling(0.7 * 0.65 * n) * seasonFactor
         'spa
-        Dim spaS2 As Double = Math.Ceiling(0.7 * 0.2 * n) * seasonFactor
-        Dim spaS3 As Double = Math.Ceiling(0.3 * 0.2 * n) * seasonFactor
+        Dim spaS2 As Double = Math.Ceiling(0.2 * 0.7 * n) * seasonFactor
+        Dim spaS3 As Double = Math.Ceiling(0.2 * 0.3 * n) * seasonFactor
 
         'matrix to be returned that says how many workers needed for each job for each shift
         'locations: 0-housekeep, 1-frontdesk, 2-lifeguard, 3-beach, 4-spa, 5-restaurant
