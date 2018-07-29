@@ -1,17 +1,16 @@
-
+Imports Microsoft.VisualBasic
 Imports System.Data
 Imports System.Data.OleDb
 
 Public Class DataLoader
     Private myConnectionStrBooking As String = ConfigurationManager.ConnectionStrings("ConnectionStrACCDB").ToString
-    'Private myConnectionStrStaffing As String = ConfigurationManager.ConnectionStrings("ConnectionStrMDB").ToString
+    Private myConnectionStrStaffing As String = ConfigurationManager.ConnectionStrings("ConnectionStrACCDB1").ToString
     Private myConnection As OleDbConnection   ' only a reference variable
     Private myCommand As OleDbCommand         ' only a reference variable
     Private myReader As OleDbDataReader       ' only a reference variable
 
     'Get dataTable of all occupied rooms for a given date range
 
-    'return information for visits
 
     'STAFFING
     'Return dataTable of all staff
@@ -121,6 +120,83 @@ Public Class DataLoader
         Dim scalar As Double = myCommand.ExecuteScalar
         myConnection.Close()
         Return scalar
+    End Function
+
+    Public Function ExistingEmployee(ByVal User As Integer, ByVal Pass As String) As Boolean
+        Dim myTable As New DataTable
+        myConnection = New OleDbConnection(myConnectionStrStaffing)
+        myCommand = New OleDbCommand("SELECT [Staff Info].[Staff ID], [Staff Info].Password FROM [Staff Info];", myConnection)
+        myConnection.Open()
+        myReader = myCommand.ExecuteReader
+        myTable.Load(myReader)
+        myReader.Close()
+        myConnection.Close()
+        Dim i As Integer
+        i = 0
+        Do Until User = myTable.Rows(i).Item("Staff ID") And Pass = myTable.Rows(i).Item("Password")
+            i = i + 1
+            If i > myTable.Rows.Count Then
+                Exit Do
+            End If
+        Loop
+
+        If i > myTable.Rows.Count Then
+            ExistingEmployee = False
+        Else
+            ExistingEmployee = True
+        End If
+
+    End Function
+
+    Public Function LoadStaffInfo() As DataTable
+        Dim myTable As New DataTable
+        myConnection = New OleDbConnection(myConnectionStrStaffing)
+        myCommand = New OleDbCommand("SELECT* FROM [Staff Info]", myConnection)
+        myConnection.Open()
+        myReader = myCommand.ExecuteReader
+        myTable.Load(myReader)
+        myReader.Close()
+        myConnection.Close()
+        Return myTable
+    End Function
+
+    Public Sub AddGuest(ByVal aName As String, ByVal anAge As String, ByVal anEmail As String, ByVal aPref As String)
+        myConnection = New OleDbConnection(myConnectionStrBooking)   ' no connection yet
+        Dim paramStr As String = "'" & aName & "'," & anAge & ", '" & anEmail & "'," & aPref
+        myCommand = New OleDbCommand("INSERT INTO Guest(Name, Age, Email, RoomPref) VALUES (" & paramStr & ")", myConnection)
+        myConnection.Open()
+        myCommand.ExecuteNonQuery()
+        myConnection.Close()
+    End Sub
+
+
+    Public Sub AddVisit(ByVal aGuestID As String, ByVal aPartySize As String, ByVal CheckIn As String, ByVal CheckOut As String, ByVal CardNum As String)
+        myConnection = New OleDbConnection(myConnectionStrBooking)   ' no connection yet
+        Dim paramStr As String = aGuestID & "," & aPartySize & ", #" & CheckIn & "#, #" & CheckOut & "#,'" & CardNum & "'"
+        myCommand = New OleDbCommand("INSERT INTO Visit(GuestID, [Party Size], [Check In], [Check Out], Payment) VALUES (" & paramStr & ")", myConnection)
+        myConnection.Open()
+        myCommand.ExecuteNonQuery()
+        myConnection.Close()
+    End Sub
+
+    Public Function GuestMax() As Integer
+        Dim maxID As Integer
+        myConnection = New OleDbConnection(myConnectionStrBooking)
+        myCommand = New OleDbCommand("SELECT Max(Guest.GuestID) FROM Guest", myConnection)
+        myConnection.Open()
+        maxID = myCommand.ExecuteScalar
+        myConnection.Close()
+        Return maxID
+    End Function
+
+    Public Function VisitMax() As Integer
+        Dim maxID As Integer
+        myConnection = New OleDbConnection(myConnectionStrBooking)
+        myCommand = New OleDbCommand("SELECT Max(Visit.VisitID) FROM Visit", myConnection)
+        myConnection.Open()
+        maxID = myCommand.ExecuteScalar
+        myConnection.Close()
+        Return maxID
     End Function
 
 End Class
