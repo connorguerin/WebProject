@@ -1,0 +1,65 @@
+Imports Microsoft.VisualBasic
+Imports Microsoft.SolverFoundation.Services
+Imports System.Data
+Public Class OptimizationResults
+    Private myCustomerList As List(Of Customer)
+    Private myRoomList As List(Of Room)
+    Private myRoomAssignments(,) As Decision
+    Private myEmployeeAssignments(,,) As Decision
+    Private myEmployeeList As List(Of Employee)
+
+    Public Sub New(ByVal aDecisionMatrix(,) As Decision, ByVal aCustomerList As List(Of Customer), ByVal aRoomList As List(Of Room))
+        myRoomAssignments = aDecisionMatrix
+        myCustomerList = aCustomerList
+        myRoomList = aRoomList
+    End Sub
+
+    Public Sub New(ByVal aDecisionMatrix(,,) As Decision, ByVal anEmployeeList As List(Of Employee))
+        myEmployeeAssignments = aDecisionMatrix
+        myEmployeeList = anEmployeeList
+    End Sub
+
+    Public Function RoomResultsToDataTable() As DataTable
+        Dim returnTable As New DataTable
+        Dim occupied As Boolean
+        Dim currentCustomer As Integer
+        Dim rowIndex As Integer = -1
+        For i = 0 To myRoomList.Count - 1
+            currentCustomer = 0
+            occupied = False
+            For j = 0 To myCustomerList.Count - 1
+                If myRoomAssignments(i, j).ToDouble = 1 Then
+                    occupied = True
+                    currentCustomer = j
+                End If
+            Next
+            If occupied Then
+                returnTable.NewRow()
+                rowIndex += 1
+                'adding a row should work but I don't know if row items are dynamic
+                returnTable.Rows.Item(rowIndex).Item(0) = CStr(myRoomList.Item(i).RoomNum) & " Reserved By:"
+                returnTable.Rows.Item(rowIndex).Item(1) = CStr(myCustomerList.Item(currentCustomer).getName)
+            End If
+        Next
+        'possibly add code for changing the availability status of the room and changing the assignment of the customer
+        Return returnTable
+    End Function
+
+    Public Function EmployeeResultsToDataTable() As DataTable
+        'return table that has total employee numbers for each shift of each location
+        'need to add Formatting for the table
+        Dim returnTable As New DataTable
+        Dim totalWorking As Integer
+        For j = 0 To 5
+            returnTable.NewRow
+            For k = 0 To 3
+                totalWorking = 0
+                For i = 0 To myEmployeeList.Count - 1
+                    totalWorking += myEmployeeAssignments(i, j, k).ToDouble
+                Next
+                returnTable.Rows.Item(j).Item(k) = totalWorking
+            Next
+        Next
+        Return returnTable
+    End Function
+End Class
