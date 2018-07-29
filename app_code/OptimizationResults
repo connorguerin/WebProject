@@ -21,25 +21,35 @@ Public Class OptimizationResults
 
     Public Function RoomResultsToDataTable() As DataTable
         Dim returnTable As New DataTable
+        returnTable.Columns.Add("Room")
+        returnTable.Columns.Add("Customer")
+        returnTable.Columns.Add("Visit ID")
         Dim occupied As Boolean
         Dim currentCustomer As Integer
+        Dim foo As String = ""
         Dim rowIndex As Integer = -1
         For i = 0 To myRoomList.Count - 1
             currentCustomer = 0
-            occupied = False
+
             For j = 0 To myCustomerList.Count - 1
+                occupied = False
                 If myRoomAssignments(i, j).ToDouble = 1 Then
+                    foo &= ("Room " & i & " occupied by customer " & j & vbCrLf)
                     occupied = True
                     currentCustomer = j
                 End If
+
+                If occupied Then
+                    Dim newrow As DataRow = returnTable.NewRow
+                    newrow("Room") = CStr(myRoomList.Item(i).RoomNum) & " Reserved By:"
+                    newrow("Customer") = CStr(myCustomerList.Item(currentCustomer).getName)
+                    newrow("Visit ID") = CStr(myCustomerList.Item(currentCustomer).getID)
+
+                    returnTable.Rows.Add(newrow)
+                    rowIndex += 1
+                End If
             Next
-            If occupied Then
-                returnTable.NewRow()
-                rowIndex += 1
-                'adding a row should work but I don't know if row items are dynamic
-                returnTable.Rows.Item(rowIndex).Item(0) = CStr(myRoomList.Item(i).RoomNum) & " Reserved By:"
-                returnTable.Rows.Item(rowIndex).Item(1) = CStr(myCustomerList.Item(currentCustomer).getName)
-            End If
+
         Next
         'possibly add code for changing the availability status of the room and changing the assignment of the customer
         Return returnTable
