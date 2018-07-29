@@ -3,17 +3,59 @@ Imports Microsoft.SolverFoundation.Services
 'TODO run tests for only 1 day of optimization then figure out how to expand from there
 Public Class RoomOptimizer
     Private myCustomerList As List(Of Customer) 'the incoming list of customers should be only the customers checking in for the day
+    Private masterCustomerList As List(Of Customer)
     Private myRoomList As List(Of Room)
+    Private masterRoomList As List(Of Room)
     Private myModel As Model
     Private myDecisionMatrix(,) As Decision
     Private Day As Integer
 
     Public Sub New(aCustomerList As List(Of Customer), aRoomList As List(Of Room), aday As DateTime)
-        myCustomerList = aCustomerList
-        myRoomList = aRoomList
+        Dim customersCheckingIn As New List(Of Customer)
+        Dim openRooms As New List(Of Room)
         Day = aday.DayOfYear
-        Dim size(aRoomList.Count - 1, aCustomerList.Count - 1) As Decision
+
+        For i = 0 To aCustomerList.Count - 1
+            If aCustomerList.Item(i).getCheckin = Day Then
+                customersCheckingIn.Add(aCustomerList.Item(i))
+            End If
+        Next
+
+        For i = 0 To aRoomList.Count - 1
+            If aRoomList.Item(i).Available = True Then
+                openRooms.Add(aRoomList.Item(i))
+            End If
+        Next
+
+        Dim size(openRooms.Count - 1, customersCheckingIn.Count - 1) As Decision
         myDecisionMatrix = size
+        myCustomerList = customersCheckingIn
+        myRoomList = openRooms
+    End Sub
+
+    Public Sub UpdateAvailability()
+        'update the availability of rooms
+        For i = 0 To myRoomList.Count - 1
+            Dim aRoom As Room = myRoomList.Item(i)
+            For j = 0 To myCustomerList.Count - 1
+                If myDecisionMatrix(i, j).ToDouble = 1 Then
+                    aRoom.noLongerAvailable()
+                End If
+            Next
+        Next
+
+        For i = 0 To myRoomList.Count - 1
+            Dim aRoom As Room = myRoomList.Item(i)
+            For j = 0 To myCustomerList.Count - 1
+                If (myDecisionMatrix(i, j).ToDouble = 1 And myCustomerList.Item(j).getcheckout = Day) Then
+                    aRoom.isNowAvailable()
+                End If
+            Next
+        Next
+    End Sub
+
+    Public Sub UpdateDay()
+        Day += 1
     End Sub
 
     Public Sub Solve()
@@ -28,24 +70,7 @@ Public Class RoomOptimizer
         AddGoal()
         ' Solve
         mySolverContext.Solve()
-        'update the availability of rooms
-        'For i = 0 To myRoomList.Count - 1
-        '    Dim aRoom As Room = myRoomList.Item(i)
-        '    For j = 0 To myCustomerList.Count - 1
-        '        If myDecisionMatrix(i, j).ToDouble = 1 Then
-        '            aRoom.noLongerAvailable()
-        '        End If
-        '    Next
-        'Next
 
-        'For i = 0 To myRoomList.Count - 1
-        '    Dim aRoom As Room = myRoomList.Item(i)
-        '    For j = 0 To myCustomerList.Count - 1
-        '        If (myDecisionMatrix(i, j).ToDouble = 1 And myCustomerList.Item(j).getcheckout = Day) Then
-        '            aRoom.isNowAvailable()
-        '        End If
-        '    Next
-        'Next
         ''move on to the next day
         'Day += 1
     End Sub
@@ -106,34 +131,14 @@ Public Class RoomOptimizer
         For i = 0 To myRoomList.Count - 1
             customers = 0
             For j = 0 To myCustomerList.Count - 1
-                Dim currentCustomer As Customer = myCustomerList.Item(i)
+                Dim currentCustomer As Customer = myCustomerList.Item(j)
                 Dim currentDecision As Decision = myDecisionMatrix(i, j)
                 customers += currentDecision
             Next
             myModel.AddConstraint("One_Customer_Per_Room_" & i, customers <= 1)
         Next
 
-        'ensures that the room is available
-        Dim isAvailableSum As term
-        For i = 0 To myRoomList.Count - 1
-            isAvailableSum = 0
-            For j = 0 To myCustomerList.Count - 1
-                Dim currentDecision As Decision = myDecisionMatrix(i, j)
-                isAvailableSum += currentDecision
-            Next
-            myModel.AddConstraint("Availability_Room_" & i, isAvailableSum >= myRoomList.Item(i).Available)
-        Next
 
-        'assigns customers to rooms only if they're checking in for the specified day
-        Dim checkin As Term
-        For i = 0 To myRoomList.Count - 1
-            checkin = 0
-            For j = 0 To myCustomerList.Count - 1
-                Dim currentdecision As Decision = myDecisionMatrix(i, j)
-                checkin = currentdecision * myCustomerList.Item(j).getCheckin
-                myModel.AddConstraint("Checkin_Room_" & i & "_Cust_" & j, checkin = Day)
-            Next
-        Next
     End Sub
 
     Public Sub AddGoal()
