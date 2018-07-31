@@ -6,7 +6,6 @@ Public Class Room
     Private myOccupancy As Integer
     Private myBathroomCount As Integer
     Private myCost As Double
-    Private isAvailable As Boolean
 
     Public Sub New(ByVal RoomNum As Double, ByVal Type As Integer, ByVal Occupancy As Integer,
                    ByVal BathCount As Integer, ByVal Cost As Double)
@@ -15,7 +14,6 @@ Public Class Room
         myOccupancy = Occupancy
         myBathroomCount = BathCount
         myCost = Cost
-        isAvailable = True
     End Sub
 
     Public ReadOnly Property RoomNum As Double
@@ -48,17 +46,4 @@ Public Class Room
         End Get
     End Property
 
-    Public ReadOnly Property Available As Boolean
-        Get
-            Return isAvailable
-        End Get
-    End Property
-
-    Public Sub noLongerAvailable()
-        isAvailable = False
-    End Sub
-
-    Public Sub isNowAvailable()
-        isAvailable = True
-    End Sub
 End Class
