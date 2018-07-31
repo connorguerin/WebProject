@@ -1,94 +1,20 @@
 Imports Microsoft.VisualBasic
 Imports Microsoft.SolverFoundation.Services
-'TODO run tests for only 1 day of optimization then figure out how to expand from there
+'Room optimizer class creates and solves the optimization model for the problem of maximizing profit based on assigning customers to rooms
 Public Class RoomOptimizer
     Private myCustomerList As List(Of Customer) 'the incoming list of customers should be only the customers checking in for the day
-    Private masterCustomerList As List(Of Customer)
-    Private myRoomList As List(Of Room)
-    Private masterRoomList As List(Of Room)
+    Private myRoomList As List(Of Room) 'incoming list of rooms is only the rooms available
     Private myModel As Model
     Private myDecisionMatrix(,) As Decision
     Private Day As Integer
 
-    Public Sub New(aCustomerList As List(Of Customer), aRoomList As List(Of Room), aday As DateTime)
-        masterCustomerList = aCustomerList
-        masterRoomList = aRoomList
-        Dim customersCheckingIn As New List(Of Customer)
-        Dim openRooms As New List(Of Room)
-        Day = aday.DayOfYear
-
-        For i = 0 To aCustomerList.Count - 1
-            If aCustomerList.Item(i).getCheckin = Day Then
-                customersCheckingIn.Add(aCustomerList.Item(i))
-            End If
-        Next
-
-        For i = 0 To aRoomList.Count - 1
-            If aRoomList.Item(i).Available = True Then
-                openRooms.Add(aRoomList.Item(i))
-            End If
-        Next
-
-        Dim size(openRooms.Count - 1, customersCheckingIn.Count - 1) As Decision
-        myDecisionMatrix = size
-        myCustomerList = customersCheckingIn
-        myRoomList = openRooms
-    End Sub
-
-    Public Sub UpdateAvailabilityandCheckins()
-        'update the availability of rooms
-        For i = 0 To myRoomList.Count - 1
-            Dim aRoom As Room = myRoomList.Item(i)
-            For j = 0 To myCustomerList.Count - 1
-                If myDecisionMatrix(i, j).ToDouble = 1 Then
-                    VacancyChange(aRoom.RoomNum, True)
-                End If
-            Next
-        Next
-        'For i = 0 To masterRoomList.Count - 1
-        '    Dim aRoom As Room = masterRoomList.Item(i)
-
-        '    For j = 0 To masterCustomerList.Count - 1
-        '        If (myDecisionMatrix(i, j).ToDouble = 1 And masterCustomerList.Item(j).getcheckout = Day) Then
-        '            VacancyChange(aRoom.RoomNum, False)
-        '        End If
-        '    Next
-        'Next
-
-        myRoomList.Clear()
-        myCustomerList.Clear()
-
-        For i = 0 To masterRoomList.Count - 1
-            If masterRoomList.Item(i).Available = True Then
-                myRoomList.Add(masterRoomList.Item(i))
-            End If
-        Next
-        For i = 0 To masterCustomerList.Count - 1
-            If masterCustomerList.Item(i).getCheckin = Day Then
-                myCustomerList.Add(masterCustomerList.Item(i))
-            End If
-        Next
+    Public Sub New(aCustomerList As List(Of Customer), aRoomList As List(Of Room), aDay As DateTime)
+        myCustomerList = aCustomerList
+        myRoomList = aRoomList
+        Day = aDay.DayOfYear
+        'Specify the size of the array of decision variables
         Dim size(myRoomList.Count - 1, myCustomerList.Count - 1) As Decision
         myDecisionMatrix = size
-
-    End Sub
-
-    Public Sub UpdateDay()
-        Day += 1
-    End Sub
-
-    Public Sub VacancyChange(ByVal roomNo As Double, taken As Boolean)
-
-        For i = 0 To masterRoomList.Count - 1
-            If masterRoomList.Item(i).RoomNum = roomNo Then
-                If (taken = True) Then
-                    masterRoomList.Item(i).noLongerAvailable()
-                Else
-                    masterRoomList.Item(i).isNowAvailable()
-                End If
-
-            End If
-        Next
     End Sub
 
     Public Sub Solve()
@@ -116,6 +42,7 @@ Public Class RoomOptimizer
         For i = 0 To myRoomList.Count - 1
             'customers
             For j = 0 To myCustomerList.Count - 1
+                'decision variable is "room i is occupied by customer j"
                 Dim roomAssignment As New Decision(Domain.IntegerRange(0, 1), "Room_" & i & "_Customer_" & j)
                 myDecisionMatrix(i, j) = roomAssignment
                 myModel.AddDecision(roomAssignment)
@@ -188,14 +115,7 @@ Public Class RoomOptimizer
     End Sub
 
     Public Function Results() As OptimizationResults
-        'Dim count As Integer = 0
-        'For i = 0 To myRoomList.Count - 1
-        '    For j = 0 To myCustomerList.Count - 1
-        '        If myDecisionMatrix(i, j).ToDouble = 1 Then
-        '            count += 1
-        '        End If
-        '    Next
-        'Next
+        'creates an optimization results instance for the model solution
         Return New OptimizationResults(myDecisionMatrix, myCustomerList, myRoomList)
     End Function
 End Class
