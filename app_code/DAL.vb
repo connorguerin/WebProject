@@ -32,7 +32,7 @@ Public Class DataLoader
 
     Public Sub CreateReservation(ByVal anID As Integer, ByVal aRoom As Double)
         myConnection = New OleDbConnection(myConnectionStrBooking)
-        Dim paramStr As String = anID & aRoom
+        Dim paramStr As String = anID & ", " & aRoom
         myCommand = New OleDbCommand("INSERT INTO Reservation(VisitID, RoomNum) VALUES (" & paramStr & ")", myConnection)
         myConnection.Open()
         myCommand.ExecuteNonQuery()
@@ -176,7 +176,8 @@ Public Class DataLoader
 
     End Function
 
-    Public Function LoadRoomList() As List(Of Room)
+    Public Function LoadRoomList(aDay As String) As List(Of Room)
+        Dim occupiedRooms As List(Of Double) = OccupiedRoomNumbers(aDay)
         Dim returnList As New List(Of Room)
         Dim myTable As New DataTable
         myConnection = New OleDbConnection(myConnectionStrBooking)
@@ -188,12 +189,14 @@ Public Class DataLoader
         myConnection.Close()
         For i = 0 To myTable.Rows.Count - 1
             Dim aRoom As New Room(myTable.Rows.Item(i).Item(0), myTable.Rows.Item(i).Item(1), myTable.Rows.Item(i).Item(2), myTable.Rows.Item(i).Item(3), myTable.Rows.Item(i).Item(4))
-            returnList.Add(aRoom)
+            If Not occupiedRooms.Contains(aRoom.RoomNum) Then
+                returnList.Add(aRoom)
+            End If
         Next
         Return returnList
     End Function
 
-    Public Function LoadCustomerList() As List(Of Customer)
+    Public Function LoadCustomerList(aDay As Integer) As List(Of Customer)
         Dim returnList As New List(Of Customer)
         Dim myTable As New DataTable
         myConnection = New OleDbConnection(myConnectionStrBooking)
@@ -205,9 +208,11 @@ Public Class DataLoader
         myConnection.Close()
         For i = 0 To myTable.Rows.Count - 1
             Dim aCustomer As New Customer(myTable.Rows.Item(i).Item(0), myTable.Rows.Item(i).Item(1), myTable.Rows.Item(i).Item(2), myTable.Rows.Item(i).Item(3), myTable.Rows.Item(i).Item(4), myTable.Rows.Item(i).Item(5))
-            returnList.Add(aCustomer)
+
+            If (aCustomer.getCheckin = aDay) Then
+                returnList.Add(aCustomer)
+            End If
         Next
         Return returnList
     End Function
 End Class
-
