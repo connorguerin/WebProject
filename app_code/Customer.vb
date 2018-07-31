@@ -7,7 +7,6 @@ Public Class Customer
     Private partySize As Integer
     Private checkin As Integer
     Private checkout As Integer
-    Private roomAssignment As Integer
 
     Public Sub New(anID As Integer, aName As String, aRoomPref As Integer, aPartySize As Integer, aCheckin As DateTime, aCheckout As DateTime)
         ID = anID
@@ -16,7 +15,6 @@ Public Class Customer
         partySize = aPartySize
         checkin = aCheckin.DayOfYear
         checkout = aCheckout.DayOfYear
-        roomAssignment = 0
     End Sub
 
     Public ReadOnly Property getID As Integer
@@ -48,16 +46,6 @@ Public Class Customer
             Return checkout
         End Get
     End Property
-
-    Public ReadOnly Property getAssignment As Integer
-        Get
-            Return roomAssignment
-        End Get
-    End Property
-
-    Public Sub setRoomAssignment(assignment As Integer)
-        roomAssignment = assignment
-    End Sub
 
     Public ReadOnly Property getName As String
         Get
