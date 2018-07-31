@@ -19,6 +19,13 @@ Public Class OptimizationResults
         myEmployeeList = anEmployeeList
     End Sub
 
+    Public Function GetDecision(i As Integer, j As Integer) As Double
+        If (i < myRoomList.Count And j < myCustomerList.Count) Then
+            Return myRoomAssignments(i, j).ToDouble
+        End If
+        Return Nothing
+    End Function
+
     Public Function RoomResultsToDataTable() As DataTable
         Dim returnTable As New DataTable
         returnTable.Columns.Add("Room")
