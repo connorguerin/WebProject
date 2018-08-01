@@ -31,7 +31,7 @@ Public Class DataLoader
 
     Public Sub CreateReservation(ByVal anID As Integer, ByVal aRoom As Double)
         myConnection = New OleDbConnection(myConnectionStrBooking)
-        Dim paramStr As String = anID & aRoom
+        Dim paramStr As String = anID & ", " & aRoom
         myCommand = New OleDbCommand("INSERT INTO Reservation(VisitID, RoomNum) VALUES (" & paramStr & ")", myConnection)
         myConnection.Open()
         myCommand.ExecuteNonQuery()
@@ -77,8 +77,23 @@ Public Class DataLoader
         Return myList
     End Function
 
-
     'METRICS
+
+    Public Function ArrivingRev(ByVal aDate As String) As DataTable
+        Dim myTable As New DataTable
+        myConnection = New OleDbConnection(myConnectionStrBooking)
+        Dim paramStr As String = "#" & aDate & "#"
+        myCommand = New OleDbCommand("SELECT Guest.Name, Visit.[Party Size] " &
+                                     "FROM Guest INNER JOIN Visit ON Guest.GuestID = Visit.GuestID " &
+                                     "WHERE Visit.[Check In]=" & paramStr, myConnection)
+        myConnection.Open()
+        myReader = myCommand.ExecuteReader
+        myTable.Load(myReader)
+        myReader.Close()
+        myConnection.Close()
+        Return myTable
+    End Function
+
     Public Function AvgRoomRate() As Double
         myConnection = New OleDbConnection(myConnectionStrBooking)
         myCommand = New OleDbCommand("SELECT Avg(Rooms.[Seasonal Rate]) AS " &
@@ -122,44 +137,6 @@ Public Class DataLoader
         Return scalar
     End Function
 
-    Public Function ExistingEmployee(ByVal User As Integer, ByVal Pass As String) As Boolean
-        Dim myTable As New DataTable
-        myConnection = New OleDbConnection(myConnectionStrStaffing)
-        myCommand = New OleDbCommand("SELECT [Staff Info].[Staff ID], [Staff Info].Password FROM [Staff Info];", myConnection)
-        myConnection.Open()
-        myReader = myCommand.ExecuteReader
-        myTable.Load(myReader)
-        myReader.Close()
-        myConnection.Close()
-        Dim i As Integer
-        i = 0
-        Do Until User = myTable.Rows(i).Item("Staff ID") And Pass = myTable.Rows(i).Item("Password")
-            i = i + 1
-            If i > myTable.Rows.Count Then
-                Exit Do
-            End If
-        Loop
-
-        If i > myTable.Rows.Count Then
-            ExistingEmployee = False
-        Else
-            ExistingEmployee = True
-        End If
-
-    End Function
-
-    Public Function LoadStaffInfo() As DataTable
-        Dim myTable As New DataTable
-        myConnection = New OleDbConnection(myConnectionStrStaffing)
-        myCommand = New OleDbCommand("SELECT* FROM [Staff Info]", myConnection)
-        myConnection.Open()
-        myReader = myCommand.ExecuteReader
-        myTable.Load(myReader)
-        myReader.Close()
-        myConnection.Close()
-        Return myTable
-    End Function
-
     Public Sub AddGuest(ByVal aName As String, ByVal anAge As String, ByVal anEmail As String, ByVal aPref As String)
         myConnection = New OleDbConnection(myConnectionStrBooking)   ' no connection yet
         Dim paramStr As String = "'" & aName & "'," & anAge & ", '" & anEmail & "'," & aPref
@@ -198,5 +175,87 @@ Public Class DataLoader
         myConnection.Close()
         Return maxID
     End Function
+
+    'query for ROOM OPTIMIZER class
+
+    Public Function LoadRoomList(aDay As String) As List(Of Room)
+        Dim occupiedRooms As List(Of Double) = OccupiedRoomNumbers(aDay)
+        Dim returnList As New List(Of Room)
+        Dim myTable As New DataTable
+        myConnection = New OleDbConnection(myConnectionStrBooking)
+        myCommand = New OleDbCommand("SELECT Rooms.[Room Num], Rooms.[Room Type], Rooms.Occupancy, Rooms.Bathrooms, Rooms.[Seasonal Rate] FROM Rooms", myConnection)
+        myConnection.Open()
+        myReader = myCommand.ExecuteReader
+        myTable.Load(myReader)
+        myReader.Close()
+        myConnection.Close()
+        For i = 0 To myTable.Rows.Count - 1
+            Dim aRoom As New Room(myTable.Rows.Item(i).Item(0), myTable.Rows.Item(i).Item(1), myTable.Rows.Item(i).Item(2), myTable.Rows.Item(i).Item(3), myTable.Rows.Item(i).Item(4))
+            If Not occupiedRooms.Contains(aRoom.RoomNum) Then
+                returnList.Add(aRoom)
+            End If
+        Next
+        Return returnList
+    End Function
+
+    Public Function LoadCustomerList(aDay As Integer) As List(Of Customer)
+        Dim returnList As New List(Of Customer)
+        Dim myTable As New DataTable
+        myConnection = New OleDbConnection(myConnectionStrBooking)
+        myCommand = New OleDbCommand("SELECT Visit.VisitID, Guest.Name, Guest.RoomPref, Visit.[Party Size], Visit.[Check In], Visit.[Check Out] FROM Guest INNER JOIN Visit ON Guest.GuestID = Visit.GuestID", myConnection)
+        myConnection.Open()
+        myReader = myCommand.ExecuteReader
+        myTable.Load(myReader)
+        myReader.Close()
+        myConnection.Close()
+        For i = 0 To myTable.Rows.Count - 1
+            Dim aCustomer As New Customer(myTable.Rows.Item(i).Item(0), myTable.Rows.Item(i).Item(1), myTable.Rows.Item(i).Item(2), myTable.Rows.Item(i).Item(3), myTable.Rows.Item(i).Item(4), myTable.Rows.Item(i).Item(5))
+
+            If (aCustomer.getCheckin = aDay) Then
+                returnList.Add(aCustomer)
+            End If
+        Next
+        Return returnList
+    End Function
+
+    'STAFF QUERIES
+
+    Public Function LoadStaffInfo() As DataTable
+        Dim myTable As New DataTable
+        myConnection = New OleDbConnection(myConnectionStrStaffing)
+        myCommand = New OleDbCommand("SELECT * FROM Staff", myConnection)
+        myConnection.Open()
+        myReader = myCommand.ExecuteReader
+        myTable.Load(myReader)
+        myReader.Close()
+        myConnection.Close()
+        Return myTable
+    End Function
+
+    'Public Function ExistingEmployee(ByVal User As Integer, ByVal Pass As String) As Boolean
+    '    Dim myTable As New DataTable
+    '    myConnection = New OleDbConnection(myConnectionStrStaffing)
+    '    myCommand = New OleDbCommand("SELECT [Staff Info].[Staff ID], [Staff Info].Password FROM [Staff Info];", myConnection)
+    '    myConnection.Open()
+    '    myReader = myCommand.ExecuteReader
+    '    myTable.Load(myReader)
+    '    myReader.Close()
+    '    myConnection.Close()
+    '    Dim i As Integer
+    '    i = 0
+    '    Do Until User = myTable.Rows(i).Item("Staff ID") And Pass = myTable.Rows(i).Item("Password")
+    '        i = i + 1
+    '        If i > myTable.Rows.Count Then
+    '            Exit Do
+    '        End If
+    '    Loop
+
+    '    If i > myTable.Rows.Count Then
+    '        ExistingEmployee = False
+    '    Else
+    '        ExistingEmployee = True
+    '    End If
+
+    'End Function
 
 End Class
