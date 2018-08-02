@@ -1,63 +1,68 @@
+Imports Microsoft.SolverFoundation.Services
 Imports System.Data
-Partial Class Schedule
+Partial Class Location
     Inherits System.Web.UI.Page
-    Dim myDataLoader As New DataLoader
+    Private myDataLoader As New DataLoader
 
-    Private Sub gvwSchedule_RowCommand(sender As Object, e As GridViewCommandEventArgs) Handles gvwSchedule.RowCommand
+    Private Sub DropDownList1_TextChanged(sender As Object, e As EventArgs) Handles DropDownList1.TextChanged
+        lblShift.Text = Session("Location")
+        If DropDownList1.Text = "Shift 1" Then
+            fillGridview(Session("Location"), Session("Shift1"))
+        ElseIf DropDownList1.Text = "Shift 2" Then
+            fillGridview(Session("Location"), Session("Shift2"))
+        ElseIf DropDownList1.Text = "Shift 3" Then
+            fillGridview(Session("Location"), Session("Shift3"))
+        ElseIf DropDownList1.Text = "Shift 4" Then
+            fillGridview(Session("Location"), Session("Shift4"))
 
-        If (e.CommandName = "Select") Then
-            Dim rowIndex As Integer = e.CommandArgument
-            Dim Location As String = gvwSchedule.Rows.Item(rowIndex).Cells.Item(1).Text
-            Session("Location") = Location
-            Response.Redirect("~/Location.aspx")
+        End If
+    End Sub
+    Protected Sub fillGridview(Location As String, decisionArray As Decision(,))
+        Dim totalhousekeeps As Integer = 0
+        Dim outputTable As New DataTable
+        Dim desiredJob As Integer
+        If Location = "Housekeep" Then
+            desiredJob = 0
+        ElseIf Location = "Front Desk" Then
+            desiredJob = 1
+        ElseIf Location = "Life Guard" Then
+            desiredJob = 2
+        ElseIf Location = "Beach Attendant" Then
+            desiredJob = 3
+        ElseIf Location = "Spa" Then
+            desiredJob = 4
+        ElseIf Location = "Restaurant" Then
+            desiredJob = 5
         End If
 
+        outputTable.Columns.Add("Employee ID")
+        outputTable.Columns.Add("Employee Name")
+        Dim myemployeelist As List(Of Employee) = myDataLoader.LoadEmployeeList
+        Dim isAssigned As Boolean = False
+        Dim currentJob As Integer = -1
+        Dim total As Integer = 0
+        lblShift.Text = Location
+        For i = 0 To myemployeelist.Count - 1
+            isAssigned = False
+            currentJob = -1
+            For j = 0 To 5
+                If decisionArray(i, j).ToDouble = 1 Then
+                    isAssigned = True
+                    currentJob = j
+                    total += 1
+                End If
+            Next
+            If isAssigned And currentJob = desiredJob Then
+                Dim newrow As DataRow = outputTable.NewRow
+                newrow("Employee ID") = myemployeelist.Item(i).GetID
+                newrow("Employee Name") = myemployeelist.Item(i).GetName
+                outputTable.Rows.Add(newrow)
+            End If
+        Next
+        gvwEmployees.DataSource = outputTable
+        gvwEmployees.DataBind()
     End Sub
 
-    Protected Sub btnOptimize_Click(sender As Object, e As EventArgs) Handles btnOptimize.Click
-        Dim aDay As Integer = Calendar1.SelectedDate.DayOfYear
-        Dim EmployeeList As List(Of Employee) = myDataLoader.LoadEmployeeList
 
 
-        Dim myScheduleOptimizer As New ScheduleOptimizer2(EmployeeList, aDay)
-        myScheduleOptimizer.Solve()
-        Dim scheduleOptimizationResultsShift1 As OptimizationResults = myScheduleOptimizer.Results
-        Session("Shift1") = scheduleOptimizationResultsShift1.GetEmployeeSchedule
-        Dim fillgridview As DataTable = scheduleOptimizationResultsShift1.EmployeeResultsToDataTableTwo
-        gvwSchedule.DataSource = fillgridview
-        gvwSchedule.DataBind()
-
-
-        myScheduleOptimizer.Update()
-        myScheduleOptimizer.Solve()
-        Dim scheduleOptimizationResultsShift2 As OptimizationResults = myScheduleOptimizer.Results
-        Session("Shift2") = scheduleOptimizationResultsShift2.GetEmployeeSchedule
-        fillgridview = scheduleOptimizationResultsShift2.EmployeeResultsToDataTableTwo
-        gvwShift2.DataSource = fillgridview
-        gvwShift2.DataBind()
-
-
-        myScheduleOptimizer.Update()
-        myScheduleOptimizer.Solve()
-        Dim scheduleOptimizationResultsShift3 As OptimizationResults = myScheduleOptimizer.Results
-        Session("Shift3") = scheduleOptimizationResultsShift3.GetEmployeeSchedule
-        fillgridview = scheduleOptimizationResultsShift3.EmployeeResultsToDataTableTwo
-        gvwShift3.DataSource = fillgridview
-        gvwShift3.DataBind()
-
-
-        myScheduleOptimizer.Update()
-        myScheduleOptimizer.Solve()
-        Dim scheduleOptimizationResultsShift4 As OptimizationResults = myScheduleOptimizer.Results
-        Session("Shift4") = scheduleOptimizationResultsShift4.GetEmployeeSchedule
-        fillgridview = scheduleOptimizationResultsShift4.EmployeeResultsToDataTableTwo
-        gvwShift4.DataSource = fillgridview
-        gvwShift4.DataBind()
-
-
-        lblShift1.Text = "Shift 1: 12 AM - 6 AM"
-        lblShift2.Text = "Shift 2: 6 AM - 12 PM"
-        lblShift3.Text = "Shift 3: 12 PM - 6 PM"
-        lblShift4.Text = "Shift 4: 6 PM - 12 AM"
-    End Sub
 End Class
