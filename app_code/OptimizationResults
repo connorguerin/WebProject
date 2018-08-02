@@ -7,8 +7,8 @@ Public Class OptimizationResults
     Private myCustomerList As List(Of Customer)
     Private myRoomList As List(Of Room)
     Private myRoomAssignments(,) As Decision
-    Private myEmployeeAssignments(,,) As Decision
     Private myEmployeeList As List(Of Employee)
+    Private myemployeeassignmentstwo(,) As Decision
 
     'constructor for room assignments instance
     Public Sub New(ByVal aDecisionMatrix(,) As Decision, ByVal aCustomerList As List(Of Customer), ByVal aRoomList As List(Of Room))
@@ -17,10 +17,9 @@ Public Class OptimizationResults
         myRoomList = aRoomList
     End Sub
 
-    'constructor for scheduling assignments instance
-    Public Sub New(ByVal aDecisionMatrix(,,) As Decision, ByVal anEmployeeList As List(Of Employee))
-        myEmployeeAssignments = aDecisionMatrix
-        myEmployeeList = anEmployeeList
+    Public Sub New(ByVal aDecisionmatrix(,) As Decision, ByVal anemployeelist As List(Of Employee))
+        myemployeeassignmentstwo = aDecisionmatrix
+        myEmployeeList = anemployeelist
     End Sub
 
     'function for formatting room results
@@ -59,17 +58,18 @@ Public Class OptimizationResults
         Return returnTable
     End Function
 
-    Public Function EmployeeResultsToDataTable() As DataTable
+    Public Function EmployeeResultsToDataTableTwo() As DataTable
         'return table that has total employee numbers for each shift of each location
         'need to add Formatting for the table
         Dim returnTable As New DataTable
         returnTable.Columns.Add("Job")
-        returnTable.Columns.Add("Shift 1: 12 AM - 6 AM")
-        returnTable.Columns.Add("Shift 2: 6 AM - 12 PM")
-        returnTable.Columns.Add("Shift 3: 12 PM - 6 PM")
-        returnTable.Columns.Add("Shift 4: 6 PM - 12 AM")
+        returnTable.Columns.Add("Total Employees")
         Dim totalWorking As Integer
         For j = 0 To 5
+            totalWorking = 0
+            For i = 0 To myEmployeeList.Count - 1
+                totalWorking += myemployeeassignmentstwo(i, j).ToDouble
+            Next
             Dim newrow As DataRow = returnTable.NewRow
             If j = 0 Then
                 newrow("Job") = "Housekeep"
@@ -84,24 +84,17 @@ Public Class OptimizationResults
             ElseIf j = 5 Then
                 newrow("Job") = "Restaurant"
             End If
+            newrow("Total Employees") = totalWorking
+            returnTable.Rows.Add(newrow)
 
-            For k = 0 To 3
-                totalWorking = 0
-                For i = 0 To myEmployeeList.Count - 1
-                    totalWorking += myEmployeeAssignments(i, j, k).ToDouble
-                Next
-                If k = 0 Then
-                    newrow("Shift 1: 12 AM - 6 AM") = totalWorking
-                ElseIf k = 1 Then
-                    newrow("Shift 2: 6 AM - 12 PM") = totalWorking
-                ElseIf k = 2 Then
-                    newrow("Shift 3: 12 PM - 6 PM") = totalWorking
-                ElseIf k = 3 Then
-                    newrow("Shift 4: 6 PM - 12 AM") = totalWorking
-                End If
 
-            Next
         Next
         Return returnTable
     End Function
+
+    Public ReadOnly Property GetEmployeeSchedule As Decision(,)
+        Get
+            Return myemployeeassignmentstwo
+        End Get
+    End Property
 End Class
