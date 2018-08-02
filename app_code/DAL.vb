@@ -152,7 +152,7 @@ Public Class DataLoader
     Public Function LoadStaffInfo() As DataTable
         Dim myTable As New DataTable
         myConnection = New OleDbConnection(myConnectionStrStaffing)
-        myCommand = New OleDbCommand("SELECT* FROM [Staff Info]", myConnection)
+        myCommand = New OleDbCommand("SELECT* FROM [Staff]", myConnection)
         myConnection.Open()
         myReader = myCommand.ExecuteReader
         myTable.Load(myReader)
@@ -163,10 +163,9 @@ Public Class DataLoader
 
     Public Function LoadEmployeeList() As List(Of Employee)
         Dim employeeTable As DataTable = LoadStaffInfo()
-        'BASE RATE NEEDS TO BE ADDED TO THE DATABASE!!!!!!!!!!!
         Dim returnList As New List(Of Employee)
         For i = 0 To employeeTable.Rows.Count - 1
-            Dim anEmployee As New Employee(employeeTable.Rows.Item(i).Item(0), employeeTable.Rows.Item(i).Item(1), employeeTable.Rows.Item(i).Item(2), employeeTable.Rows.Item(i).Item(3), employeeTable.Rows.Item(i).Item(4))
+            Dim anEmployee As New Employee(employeeTable.Rows.Item(i).Item(0), employeeTable.Rows.Item(i).Item(3), employeeTable.Rows.Item(i).Item(1), employeeTable.Rows.Item(i).Item(2), employeeTable.Rows.Item(i).Item(4))
             returnList.Add(anEmployee)
         Next
         Return returnList
